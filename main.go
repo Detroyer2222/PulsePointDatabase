@@ -6,11 +6,10 @@ import (
 
 	"pulsepoint/internal/tasks"
 
-	"github.com/spf13/viper"
-
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/spf13/viper"
 )
 
 func main() {
