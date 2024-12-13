@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/spf13/viper"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -33,27 +35,23 @@ func UpdateCommodities(app core.App) {
 	fmt.Println("Updating commodities has started")
 
 	// Loading the API URL and API Key from the database
-	uexApiUrl, err := app.FindFirstRecordByData("functionSecrets", "key", "uexApiUrl")
-	if err != nil {
-		l.Error("Failed to get uexApiUrl",
-			"error", err.Error())
-		return
+	uexApiUrl, ok := viper.Get("UEX_API_URL").(string)
+	if !ok {
+		fmt.Errorf("Failed to get uexApiUrl")
 	}
 
-	uexApiKey, err := app.FindFirstRecordByData("functionSecrets", "key", "uexApiKey")
-	if err != nil {
-		l.Error("Failed to get uexApiKey",
-			"error", err.Error())
-		return
+	uexApiKey, ok := viper.Get("UEX_API_KEY").(string)
+	if !ok {
+		fmt.Errorf("Failed to get uexApiUrl")
 	}
 
 	l.Debug("Uex Variables loaded",
-		"url", uexApiUrl.GetString("value"),
-		"key", uexApiKey.GetString("value"))
+		"url", uexApiUrl,
+		"key", uexApiKey)
 	fmt.Println("Uex Variables loaded")
 
 	// Creating Request
-	commodityUrl := fmt.Sprintf("%s/commodities", uexApiUrl.GetString("value"))
+	commodityUrl := fmt.Sprintf("%s/commodities", uexApiUrl)
 	req, err := http.NewRequest("GET", commodityUrl, nil)
 	if err != nil {
 		l.Error("Failed to create request",
@@ -62,7 +60,7 @@ func UpdateCommodities(app core.App) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", uexApiKey.GetString("value")))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", uexApiKey))
 
 	// Sending Request
 	client := &http.Client{}

@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/spf13/viper"
 	"pulsepoint.com/database/internal/tasks"
 
 	"github.com/pocketbase/pocketbase"
@@ -25,6 +26,13 @@ func main() {
 		//tasks.UpdateCommodities(e)
 		return e.Next()
 	})
+
+	viper.SetConfigFile(".env")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Error reading config file, %s", err)
+	}
+
 	app.Cron().MustAdd("updatingCommodities", "0 */6 * * *", func() { tasks.UpdateCommodities(app.App) })
 
 	//app.OnServe().BindFunc(updateCommodities(commoditiesLogger))
