@@ -27,7 +27,7 @@ type APIResponse struct {
 
 // UpdateCommodities updates the commodities in the database
 func UpdateCommodities(app core.App) {
-	l := app.Logger().WithGroup("updatingCommodities")
+	l := app.Logger().WithGroup("cronCommodities")
 
 	l.Info("Updating commodities has started")
 	fmt.Println("Updating commodities has started")
@@ -182,4 +182,9 @@ func ContainsIgnoreCase(str, substr string) bool {
 
 func ConvertToBool(val int16) bool {
 	return val == 1
+}
+
+func UpdateStarSystems(app core.App) {
+	//l := app.Logger().WithGroup("cronStarSystems")
+
 }
