@@ -4,8 +4,9 @@ import (
 	"log"
 	"os"
 
+	"pulsepoint/internal/tasks"
+
 	"github.com/spf13/viper"
-	"pulsepoint.com/database/internal/tasks"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
