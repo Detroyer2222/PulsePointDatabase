@@ -4,7 +4,7 @@ import "github.com/pocketbase/pocketbase/core"
 
 // CreateCommodityChanges is a hook function that tracks and records changes in the commodity quantity
 // for an outpost whenever a commodity record is updated. It compares the new commodity quantity with the previous
-// quantity and logs the difference, saving this change as a new entry in the "commodity_changes" collection.
+// quantity and logs the difference, saving this change as a new entry in the "outpost_commodity_changes" collection.
 //
 // Parameters:
 //   e (*core.RecordEvent): The event that triggered this hook, containing the updated commodity record.
@@ -29,7 +29,7 @@ func CreateCommodityChanges(e *core.RecordEvent) {
 		l.Debug("New outpost commodity record", "new_record", e.Record)
 
 		// Retrieve the commodity_changes collection to store the change record
-		commodityChangesCollection, err := txPb.FindCollectionByNameOrId("commodity_changes")
+		commodityChangesCollection, err := txPb.FindCollectionByNameOrId("outpost_commodity_changes")
 		if err != nil {
 			l.Error("Error finding commodity_changes collection", "error", err)
 			return err
@@ -37,6 +37,8 @@ func CreateCommodityChanges(e *core.RecordEvent) {
 
 		// Create a new record for the commodity change
 		commodityChangeRecord := core.NewRecord(commodityChangesCollection)
+		commodityChangeRecord.Set("organization", e.Record.GetString("organization"))
+		commodityChangeRecord.Set("outpost", e.Record.GetString("outpost"))
 		commodityChangeRecord.Set("outpost_commodity", e.Record.Id)
 		commodityChangeRecord.Set("commodity", e.Record.Get("commodity"))
 

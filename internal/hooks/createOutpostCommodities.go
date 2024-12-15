@@ -36,9 +36,10 @@ func CreateOutpostCommodities(e *core.RecordEvent) {
 		for _, commodity := range commodities {
 			// Create a new outpost commodity for each commodity
 			outpostCommodity := core.NewRecord(outpostCommodityCollection)
-			outpostCommodity.Set("outpost", e.Record.Id)    // Link the outpost
-			outpostCommodity.Set("commodity", commodity.Id) // Link the commodity
-			outpostCommodity.Set("amount", 0)               // Initialize quantity as 0
+			outpostCommodity.Set("organization", e.Record.GetString("organization")) // Link the organization
+			outpostCommodity.Set("outpost", e.Record.Id)                             // Link the outpost
+			outpostCommodity.Set("commodity", commodity.Id)                          // Link the commodity
+			outpostCommodity.Set("amount", 0)                                        // Initialize quantity as 0
 
 			l.Debug("Creating outpost commodity", "outpost_id", e.Record.Id, "commodity_id", commodity.Id)
 
