@@ -2,12 +2,12 @@ package main
 
 import (
 	"log"
-	"os"
+	"net/http"
 
+	"pulsepoint/internal/hooks"
 	"pulsepoint/internal/tasks"
 
 	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/spf13/viper"
 )
@@ -15,28 +15,46 @@ import (
 func main() {
 	app := pocketbase.New()
 
-	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		// serves static files from the provided public dir (if exists)
-		se.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public"), false))
-
-		return se.Next()
-	})
-
-	app.OnRecordAfterCreateSuccess("functionSecrets").BindFunc(func(e *core.RecordEvent) error {
-		//tasks.UpdateCommodities(e)
-		return e.Next()
-	})
-
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("Error reading config file, %s", err)
 	}
 
+	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		// register "POST /api/pulsepoint/updateCommodities" route (allowed only for authenticated users)
+		se.Router.POST("/api/pulsepoint/updateCommodities", func(e *core.RequestEvent) error {
+			tasks.UpdateCommodities(app.App)
+			return e.JSON(http.StatusOK, map[string]bool{"success": true})
+			// Add Superuser Auth here when deploying
+		}).Bind( /*apis.RequireSuperuserAuth()*/ )
+
+		// register "POST /api/pulsepoint/updateStarSystems" route (allowed only for authenticated users)
+		se.Router.POST("/api/pulsepoint/updateStarSystems", func(e *core.RequestEvent) error {
+			tasks.UpdateStarSystems(app.App)
+			return e.JSON(http.StatusOK, map[string]bool{"success": true})
+			// Add Superuser Auth here when deploying
+		}).Bind( /*apis.RequireSuperuserAuth()*/ )
+
+		return se.Next()
+	})
+
 	app.Cron().MustAdd("updatingCommodities", "0 */6 * * *", func() { tasks.UpdateCommodities(app.App) })
+	app.Cron().MustAdd("updatingStarSystems", "0 12 1 */1 *", func() { tasks.UpdateStarSystems(app.App) })
 
-	//app.OnServe().BindFunc(updateCommodities(commoditiesLogger))
+	// fires only for "outposts"
+	app.OnRecordAfterCreateSuccess("outposts").BindFunc(func(e *core.RecordEvent) error {
+		hooks.CreateOutpostCommodities(e)
+		return e.Next()
+	})
 
+	app.OnRecordUpdateExecute("outpost_commodities").BindFunc(func(e *core.RecordEvent) error {
+		hooks.CreateCommodityChanges(e)
+		return e.Next()
+	})
+
+	//TODO upload commit to github
+	//TODO add uex_id to every collection and hide it
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
