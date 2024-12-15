@@ -8,6 +8,7 @@ import (
 	"pulsepoint/internal/tasks"
 
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/spf13/viper"
 )
@@ -27,14 +28,14 @@ func main() {
 			tasks.UpdateCommodities(app.App)
 			return e.JSON(http.StatusOK, map[string]bool{"success": true})
 			// Add Superuser Auth here when deploying
-		}).Bind( /*apis.RequireSuperuserAuth()*/ )
+		}).Bind(apis.RequireSuperuserAuth())
 
 		// register "POST /api/pulsepoint/updateStarSystems" route (allowed only for authenticated users)
 		se.Router.POST("/api/pulsepoint/updateStarSystems", func(e *core.RequestEvent) error {
 			tasks.UpdateStarSystems(app.App)
 			return e.JSON(http.StatusOK, map[string]bool{"success": true})
 			// Add Superuser Auth here when deploying
-		}).Bind( /*apis.RequireSuperuserAuth()*/ )
+		}).Bind(apis.RequireSuperuserAuth())
 
 		return se.Next()
 	})
@@ -53,8 +54,6 @@ func main() {
 		return e.Next()
 	})
 
-	//TODO upload commit to github
-	//TODO add uex_id to every collection and hide it
 	if err := app.Start(); err != nil {
 		log.Fatal(err)
 	}
